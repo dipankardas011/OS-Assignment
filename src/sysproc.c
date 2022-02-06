@@ -49,7 +49,7 @@ int
 sys_getppid(void)
 {
   return getppid();
-  //return myproc()->parent->id;
+  //return myproc()->parent->pid;
 }
 
 //-------------------------------
