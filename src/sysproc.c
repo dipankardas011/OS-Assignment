@@ -42,6 +42,18 @@ sys_getpid(void)
   return myproc()->pid;
 }
 
+
+//-------------------------------
+
+int
+sys_getppid(void)
+{
+  return getppid();
+  //return myproc()->parent->id;
+}
+
+//-------------------------------
+
 int
 sys_sbrk(void)
 {
@@ -89,3 +101,4 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+

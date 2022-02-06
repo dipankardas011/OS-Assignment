@@ -1,0 +1,5 @@
+syscall == getppid()  example IS CPS
+
+function name is getppid
+
+getpid is in proc.h
