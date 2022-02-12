@@ -12,22 +12,21 @@ Assignment
 - `20051554`    *Dipankar Das*
 - `20051575`    *Rohit Ryan*
 - `20051588`    *Shivansh Chaubey*
+- `20051446`    *Shagun Kumar*
 
 ## Branch
 
 ### Q1
 - [x] Dipankar Das
-- [x] TO_BE-FILLED
 
 ### Q2
-- [ ] TO_BE-FILLED
-- [ ] TO_BE-FILLED
+- [ ] TO_BE_FILLED
+- [ ] TO_BE_FILLED
 
 ### Q3
-- [ ] TO_BE-FILLED
-- [ ] TO_BE-FILLED
+- [ ] TO_BE_FILLED
+- [ ] TO_BE_FILLED
 
 ### Q4
-- [ ] TO_BE-FILLED
-- [ ] TO_BE-FILLED
-
+- [ ] TO_BE_FILLED
+- [ ] TO_BE_FILLED
