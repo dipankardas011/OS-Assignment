@@ -18,7 +18,6 @@ Assignment
 
 ### Q1
 - [x] Dipankar Das
-- [x] TO_BE_FILLED
 
 ### Q2
 - [ ] TO_BE_FILLED
@@ -31,4 +30,3 @@ Assignment
 ### Q4
 - [ ] TO_BE_FILLED
 - [ ] TO_BE_FILLED
-
