@@ -111,6 +111,7 @@ found:
   p->context = (struct context*)sp;
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
+  p->cr_time = ticks;//Process creation time
 
   return p;
 }
@@ -138,6 +139,7 @@ userinit(void)
   p->tf->eflags = FL_IF;
   p->tf->esp = PGSIZE;
   p->tf->eip = 0;  // beginning of initcode.S
+  p->cr_time = ticks; //Process creation time
 
   safestrcpy(p->name, "initcode", sizeof(p->name));
   p->cwd = namei("/");
@@ -538,3 +540,26 @@ getppid()
 {
   return myproc()->parent->pid;
 }
+
+int
+sys_sps(void)
+{
+        struct proc *p;
+        sti();
+        acquire(&ptable.lock);
+        cprintf("PID : PPID : NAME : STATE : CREATION TIME : SIZE\n");
+        for(p = ptable.proc; p<&ptable.proc[NPROC]; p++)
+        {
+         if(p->state == SLEEPING)
+         cprintf("%d : %d : %s : SLEEPING : %d : %d\n",p->pid,p->parent->pid,p->name,p->cr_time,p->sz);
+         else if(p->state == RUNNING)
+         cprintf("%d : %d : %s : RUNNING : %d : %d\n",p->pid,p->parent->pid,p->name,p->cr_time,p->sz);
+         else if (p->state == RUNNABLE)
+         cprintf("%d : %d : %s : RUNNABLE : %d : %d\n",p->pid,p->parent->pid,p->name,p->cr_time,p->sz);
+        }
+        release(&ptable.lock);
+        return 0;
+
+}
+
+
