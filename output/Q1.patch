@@ -1,0 +1,149 @@
+commit 69b71590da646d666d7d3e2df2e4069706051ce1
+Author: DipankarDas <dipsonu10@hotmail.com>
+Date:   Thu Feb 10 15:44:12 2022 +0530
+
+  	Testing Done Q1✅ ready to be merge
+    
+    Signed-off-by: DipankarDas <dipsonu10@hotmail.com>
+
+diff --git a/src/Makefile b/src/Makefile
+index 09d790c..d1c1b2b 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -180,6 +180,7 @@ UPROGS=\
+ 	_stressfs\
+ 	_usertests\
+ 	_wc\
++	_prd\
+ 	_zombie\
+ 
+ fs.img: mkfs README $(UPROGS)
+@@ -249,7 +250,7 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
+ 
+ EXTRA=\
+ 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
+-	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
++	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c prd.c zombie.c\
+ 	printf.c umalloc.c\
+ 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
+ 	.gdbinit.tmpl gdbutil\
+diff --git a/src/defs.h b/src/defs.h
+index 82fb982..d339727 100644
+--- a/src/defs.h
++++ b/src/defs.h
+@@ -120,6 +120,7 @@ void            userinit(void);
+ int             wait(void);
+ void            wakeup(void*);
+ void            yield(void);
++int             getppid(void);
+ 
+ // swtch.S
+ void            swtch(struct context**, struct context*);
+diff --git a/src/prd.c b/src/prd.c
+new file mode 100644
+index 0000000..f3c5e25
+--- /dev/null
++++ b/src/prd.c
+@@ -0,0 +1,12 @@
++#include "types.h"
++#include "stat.h"
++#include "user.h"
++#include "fcntl.h"
++
++int
++main(int argc, char *argv[])
++{
++  printf(1, "PPID: %d\n", getppid());
++
++  exit();
++}
+diff --git a/src/proc.c b/src/proc.c
+index 806b1b1..d67a73f 100644
+--- a/src/proc.c
++++ b/src/proc.c
+@@ -532,3 +532,13 @@ procdump(void)
+     cprintf("\n");
+   }
+ }
++
++int
++getppid()
++{
++  return myproc()->parent->pid;
++}
+diff --git a/src/syscall.c b/src/syscall.c
+index ee85261..f3d74af 100644
+--- a/src/syscall.c
++++ b/src/syscall.c
+@@ -103,6 +103,7 @@ extern int sys_unlink(void);
+ extern int sys_wait(void);
+ extern int sys_write(void);
+ extern int sys_uptime(void);
++extern int sys_getppid(void);
+ 
+ static int (*syscalls[])(void) = {
+ [SYS_fork]    sys_fork,
+@@ -126,6 +127,7 @@ static int (*syscalls[])(void) = {
+ [SYS_link]    sys_link,
+ [SYS_mkdir]   sys_mkdir,
+ [SYS_close]   sys_close,
++[SYS_getppid] sys_getppid,
+ };
+ 
+ void
+diff --git a/src/syscall.h b/src/syscall.h
+index bc5f356..68d3a70 100644
+--- a/src/syscall.h
++++ b/src/syscall.h
+@@ -1,22 +1,24 @@
+ // System call numbers
+ #define SYS_close  21
++#define SYS_getppid 22
++
+diff --git a/src/sysproc.c b/src/sysproc.c
+index 0686d29..d2c3de7 100644
+--- a/src/sysproc.c
++++ b/src/sysproc.c
+@@ -42,6 +42,18 @@ sys_getpid(void)
+   return myproc()->pid;
+ }
+ 
++
++int
++sys_getppid(void)
++{
++  return getppid();
++  //return myproc()->parent->id;
++}
++
++
+ int
+ sys_sbrk(void)
+ {
+@@ -89,3 +101,4 @@ sys_uptime(void)
+   release(&tickslock);
+   return xticks;
+ }
+diff --git a/src/user.h b/src/user.h
+index 4f99c52..0fbbd35 100644
+--- a/src/user.h
++++ b/src/user.h
+@@ -23,6 +23,7 @@ int getpid(void);
+ char* sbrk(int);
+ int sleep(int);
+ int uptime(void);
++int getppid(void);
+ 
+ // ulib.c
+ int stat(const char*, struct stat*);
+diff --git a/src/usys.S b/src/usys.S
+index 8bfd8a1..1794316 100644
+--- a/src/usys.S
++++ b/src/usys.S
+@@ -29,3 +29,5 @@ SYSCALL(getpid)
+ SYSCALL(sbrk)
+ SYSCALL(sleep)
+ SYSCALL(uptime)
++
++SYSCALL(getppid)
+\ No newline at end of file
