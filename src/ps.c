@@ -6,8 +6,8 @@
 int main(void)
 {
 	printf(1,"20051575\n");
-	//sps();
-	int t = fork();
+	sps();
+	/*int t = fork();
 	if(t==0){
 	 sps();
 	 }
@@ -15,7 +15,7 @@ int main(void)
 	  {
 	  int b = wait();
 	  printf(1,"\n%d\n",b);
-	  }
+	  }*/
 	exit();
 	
 }
