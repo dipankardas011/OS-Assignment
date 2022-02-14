@@ -1,0 +1,135 @@
+diff --git a/src/Makefile b/src/Makefile
+index d1c1b2b..955bc64 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -181,6 +181,7 @@ UPROGS=\
+ 	_usertests\
+ 	_wc\
+ 	_prd\
++	_ps\
+ 	_zombie\
+ 
+ fs.img: mkfs README $(UPROGS)
+diff --git a/src/defs.h b/src/defs.h
+index d339727..b330737 100644
+--- a/src/defs.h
++++ b/src/defs.h
+@@ -121,7 +121,7 @@ int             wait(void);
+ void            wakeup(void*);
+ void            yield(void);
+ int             getppid(void);
+-
++int		sps(void);
+ // swtch.S
+ void            swtch(struct context**, struct context*);
+ 
+diff --git a/src/proc.c b/src/proc.c
+index 188ab56..6a5a33d 100644
+--- a/src/proc.c
++++ b/src/proc.c
+@@ -111,6 +111,7 @@ found:
+   p->context = (struct context*)sp;
+   memset(p->context, 0, sizeof *p->context);
+   p->context->eip = (uint)forkret;
++  p->cr_time = ticks;//Process creation time
+ 
+   return p;
+ }
+@@ -138,6 +139,7 @@ userinit(void)
+   p->tf->eflags = FL_IF;
+   p->tf->esp = PGSIZE;
+   p->tf->eip = 0;  // beginning of initcode.S
++  p->cr_time = ticks; //Process creation time
+ 
+   safestrcpy(p->name, "initcode", sizeof(p->name));
+   p->cwd = namei("/");
+@@ -538,3 +540,26 @@ getppid()
+ {
+   return myproc()->parent->pid;
+ }
++
++int
++sys_sps(void)
++{
++        struct proc *p;
++        sti();
++        acquire(&ptable.lock);
++        cprintf("PID : PPID : NAME : STATE : CREATION TIME : SIZE\n");
++        for(p = ptable.proc; p<&ptable.proc[NPROC]; p++)
++        {
++         if(p->state == SLEEPING)
++         cprintf("%d : %d : %s : SLEEPING : %d : %d\n",p->pid,p->parent->pid,p->name,p->cr_time,p->sz);
++         else if(p->state == RUNNING)
++         cprintf("%d : %d : %s : RUNNING : %d : %d\n",p->pid,p->parent->pid,p->name,p->cr_time,p->sz);
++         else if (p->state == RUNNABLE)
++         cprintf("%d : %d : %s : RUNNABLE : %d : %d\n",p->pid,p->parent->pid,p->name,p->cr_time,p->sz);
++        }
++        release(&ptable.lock);
++        return 0;
++
++}
++
++
+diff --git a/src/proc.h b/src/proc.h
+index 1647114..c1b2d56 100644
+--- a/src/proc.h
++++ b/src/proc.h
+@@ -49,6 +49,7 @@ struct proc {
+   struct file *ofile[NOFILE];  // Open files
+   struct inode *cwd;           // Current directory
+   char name[16];               // Process name (debugging)
++  int cr_time;	 	       //Process creation time
+ };
+ 
+ // Process memory is laid out contiguously, low addresses first:
+diff --git a/src/syscall.c b/src/syscall.c
+index f3d74af..4cd9612 100644
+--- a/src/syscall.c
++++ b/src/syscall.c
+@@ -104,6 +104,7 @@ extern int sys_wait(void);
+ extern int sys_write(void);
+ extern int sys_uptime(void);
+ extern int sys_getppid(void);
++extern int sys_sps(void);
+ 
+ static int (*syscalls[])(void) = {
+ [SYS_fork]    sys_fork,
+@@ -128,6 +129,7 @@ static int (*syscalls[])(void) = {
+ [SYS_mkdir]   sys_mkdir,
+ [SYS_close]   sys_close,
+ [SYS_getppid] sys_getppid,
++[SYS_sps]     sys_sps,
+ };
+ 
+ void
+diff --git a/src/syscall.h b/src/syscall.h
+index 68d3a70..d2d236e 100644
+--- a/src/syscall.h
++++ b/src/syscall.h
+@@ -21,4 +21,4 @@
+ #define SYS_mkdir   20
+ #define SYS_close   21
+ #define SYS_getppid 22
+-
++#define SYS_sps	    23
+diff --git a/src/user.h b/src/user.h
+index 0fbbd35..c899602 100644
+--- a/src/user.h
++++ b/src/user.h
+@@ -24,6 +24,7 @@ char* sbrk(int);
+ int sleep(int);
+ int uptime(void);
+ int getppid(void);
++int sps(void);
+ 
+ // ulib.c
+ int stat(const char*, struct stat*);
+diff --git a/src/usys.S b/src/usys.S
+index 1794316..b14f7be 100644
+--- a/src/usys.S
++++ b/src/usys.S
+@@ -31,3 +31,4 @@ SYSCALL(sleep)
+ SYSCALL(uptime)
+ 
+ SYSCALL(getppid)
++SYSCALL(sps)
