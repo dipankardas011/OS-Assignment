@@ -20,8 +20,8 @@ Assignment
 - [x] Dipankar Das
 
 ### Q2
-- [ ] TO_BE_FILLED
-- [ ] TO_BE_FILLED
+- [x] Rohit Ryan
+- [x] Shivansh Chaubey
 
 ### Q3
 - [ ] TO_BE_FILLED
