@@ -184,6 +184,7 @@ UPROGS=\
 	_ps\
 	_zombie\
 	_myprocess\
+	_cal\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
