@@ -1,0 +1,204 @@
+commit f99e3a6412d597af476bd45ac2dcb2f7f914af07
+Author: KStar-coder <sharmakaustav04@gmail.com>
+Date:   Tue Feb 15 17:03:10 2022 +0530
+
+    q4 Completed!
+    
+    Signed-off-by: KStar-coder <sharmakaustav04@gmail.com>
+
+diff --git a/output/q4.patch b/output/q4.patch
+new file mode 100644
+index 0000000..e69de29
+diff --git a/output/q4.png b/output/q4.png
+new file mode 100644
+index 0000000..a93b9dc
+Binary files /dev/null and b/output/q4.png differ
+diff --git a/src/Makefile b/src/Makefile
+index 955bc64..b88a5c4 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -183,6 +183,7 @@ UPROGS=\
+ 	_prd\
+ 	_ps\
+ 	_zombie\
++	_myprocess\
+ 
+ fs.img: mkfs README $(UPROGS)
+ 	./mkfs fs.img README $(UPROGS)
+@@ -252,7 +253,7 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
+ EXTRA=\
+ 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
+ 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c prd.c zombie.c\
+-	printf.c umalloc.c\
++	printf.c umalloc.c myprocess.c\
+ 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
+ 	.gdbinit.tmpl gdbutil\
+ 
+diff --git a/src/defs.h b/src/defs.h
+index 913e944..d902698 100644
+--- a/src/defs.h
++++ b/src/defs.h
+@@ -122,6 +122,7 @@ void            wakeup(void*);
+ void            yield(void);
+ int             getppid(void);
+ int		          sps(void);
++int 		    waitpid(int);
+ // swtch.S
+ void            swtch(struct context**, struct context*);
+ 
+diff --git a/src/myprocess.c b/src/myprocess.c
+new file mode 100644
+index 0000000..ddefd3b
+--- /dev/null
++++ b/src/myprocess.c
+@@ -0,0 +1,24 @@
++#include "types.h"
++#include "stat.h"
++#include "user.h"
++
++int main(int argc, char **argv){
++
++	int i,a[2]={0};
++
++	printf(1, "Parent: %d %d\n",getpid(),getpid());
++	for(i=0;i<2;i++){
++		a[i]=fork();
++		if(a[i]==0){
++				printf(1, "Child: %d %d\n",a[i],getpid());
++			break;
++		}else{
++			printf(1, "parent: %d %d\n",a[i],getpid());
++		}
++	}
++	int c = waitpid(a[1]);
++	printf(1, "WAIT : %d %d\n",c,getpid());
++	exit();
++
++}
++
+diff --git a/src/proc.c b/src/proc.c
+index 6a5a33d..a87573d 100644
+--- a/src/proc.c
++++ b/src/proc.c
+@@ -561,5 +561,51 @@ sys_sps(void)
+         return 0;
+ 
+ }
++int 
++waitpid(int cpid)
++{
++	struct proc *p;
++	int havekids,pid;
++	struct proc *curproc=myproc();
++	
++	acquire (&ptable.lock);
++	for(;;){
++		//Scan through table looking for exited childern
++		havekids=0;
++	
++		for(p=ptable.proc;p<&ptable.proc[NPROC];p++){
++			if(p->pid!=cpid || p->parent!=curproc)
++			continue;
++			
++			havekids=1;
++			if(p->state == ZOMBIE){
++			
++			//found one
++			pid = p->pid;
++			kfree(p->kstack);
++			p->kstack = 0;
++			freevm(p->pgdir);
++			p->pid = 0;
++			p->parent = 0;
++			p->name[0]=0;
++			p->killed = 0;
++			p->state = UNUSED;
++			release(&ptable.lock);
++			return pid;
++			
++			}
++		
++		}
++		if(havekids || curproc->killed){
++		
++			release(&ptable.lock);
++			return -1;
++		
++		}
++
++		sleep(curproc, &ptable.lock);
++		
++		}
++}
+ 
+ 
+diff --git a/src/syscall.c b/src/syscall.c
+index 4cd9612..0f35f40 100644
+--- a/src/syscall.c
++++ b/src/syscall.c
+@@ -105,6 +105,7 @@ extern int sys_write(void);
+ extern int sys_uptime(void);
+ extern int sys_getppid(void);
+ extern int sys_sps(void);
++extern int sys_waitpid(void);
+ 
+ static int (*syscalls[])(void) = {
+ [SYS_fork]    sys_fork,
+@@ -130,6 +131,7 @@ static int (*syscalls[])(void) = {
+ [SYS_close]   sys_close,
+ [SYS_getppid] sys_getppid,
+ [SYS_sps]     sys_sps,
++[SYS_waitpid]   sys_waitpid,
+ };
+ 
+ void
+diff --git a/src/syscall.h b/src/syscall.h
+index d2d236e..370c4ac 100644
+--- a/src/syscall.h
++++ b/src/syscall.h
+@@ -22,3 +22,4 @@
+ #define SYS_close   21
+ #define SYS_getppid 22
+ #define SYS_sps	    23
++#define SYS_waitpid 24
+diff --git a/src/sysproc.c b/src/sysproc.c
+index 31574bb..8a4d3d8 100644
+--- a/src/sysproc.c
++++ b/src/sysproc.c
+@@ -101,4 +101,15 @@ sys_uptime(void)
+   release(&tickslock);
+   return xticks;
+ }
++int 
++sys_waitpid(void)
++{
++	int pid;
++	
++	if(argint(0,&pid)<0)
++	return -1;
++	
++	
++	return waitpid(pid);
++}
+ 
+diff --git a/src/user.h b/src/user.h
+index c899602..8145171 100644
+--- a/src/user.h
++++ b/src/user.h
+@@ -25,6 +25,7 @@ int sleep(int);
+ int uptime(void);
+ int getppid(void);
+ int sps(void);
++int waitpid(int);
+ 
+ // ulib.c
+ int stat(const char*, struct stat*);
+diff --git a/src/usys.S b/src/usys.S
+index b14f7be..b0fbb6a 100644
+--- a/src/usys.S
++++ b/src/usys.S
+@@ -32,3 +32,4 @@ SYSCALL(uptime)
+ 
+ SYSCALL(getppid)
+ SYSCALL(sps)
++SYSCALL(waitpid)

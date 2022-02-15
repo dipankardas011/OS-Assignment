@@ -561,5 +561,51 @@ sys_sps(void)
         return 0;
 
 }
+int 
+waitpid(int cpid)
+{
+	struct proc *p;
+	int havekids,pid;
+	struct proc *curproc=myproc();
+	
+	acquire (&ptable.lock);
+	for(;;){
+		//Scan through table looking for exited childern
+		havekids=0;
+	
+		for(p=ptable.proc;p<&ptable.proc[NPROC];p++){
+			if(p->pid!=cpid || p->parent!=curproc)
+			continue;
+			
+			havekids=1;
+			if(p->state == ZOMBIE){
+			
+			//found one
+			pid = p->pid;
+			kfree(p->kstack);
+			p->kstack = 0;
+			freevm(p->pgdir);
+			p->pid = 0;
+			p->parent = 0;
+			p->name[0]=0;
+			p->killed = 0;
+			p->state = UNUSED;
+			release(&ptable.lock);
+			return pid;
+			
+			}
+		
+		}
+		if(havekids || curproc->killed){
+		
+			release(&ptable.lock);
+			return -1;
+		
+		}
+
+		sleep(curproc, &ptable.lock);
+		
+		}
+}
 
 
