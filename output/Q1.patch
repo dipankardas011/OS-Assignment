@@ -4,7 +4,7 @@ Date:   Thu Feb 10 15:44:12 2022 +0530
 
   	Testing Done Q1✅ ready to be merge
     
-    Signed-off-by: DipankarDas <dipsonu10@hotmail.com>
+    Signed-off-by: DipankarDas <dipsonu10@hotmail.com>, Shagun Kumar <20051446@kiit.ac.in>
 
 diff --git a/src/Makefile b/src/Makefile
 index 09d790c..d1c1b2b 100644

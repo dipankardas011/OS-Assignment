@@ -4,7 +4,7 @@ OS-assignment CSE 3
 Assignment
 ## Grp-members
 
-- `02005006`    *Ahna Bose*
+- `02005006`    *Ahana Bose*
 - `02005035`    *Manav singh*
 - `02005731`    *Kaustav Sharma*
 - `20051550`    *Nivedita Sutradhar*
@@ -18,15 +18,17 @@ Assignment
 
 ### Q1
 - [x] Dipankar Das
+- [x] Shagun Kumar
 
 ### Q2
 - [x] Rohit Ryan
 - [x] Shivansh Chaubey
+- [x] Ahana Bose
 
 ### Q3
-- [ ] TO_BE_FILLED
-- [ ] TO_BE_FILLED
+- [x] Nivedita Sutradhar
+- [x] Pranshul Goyal
 
 ### Q4
-- [ ] TO_BE_FILLED
-- [ ] TO_BE_FILLED
+- [x] Kaustav Sharma
+- [x] Manav singh

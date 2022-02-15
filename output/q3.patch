@@ -4,7 +4,7 @@ Date:   Tue Feb 15 17:34:34 2022 +0530
 
     q3 done. Only left is patch.
     
-    Signed-off-by: pranshul <pranshul.hs@gmail.com>
+    Signed-off-by: pranshul <pranshul.hs@gmail.com>, Nivedita Sutradhar <20051550>
 
 diff --git a/output/q3.png b/output/q3.png
 new file mode 100644
