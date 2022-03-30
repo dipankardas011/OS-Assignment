@@ -5,7 +5,7 @@
 
 int main(void)
 {
-	printf(1,"20051575\n");
+	// printf(1,"20051575\n");
 	sps();
 	/*int t = fork();
 	if(t==0){
