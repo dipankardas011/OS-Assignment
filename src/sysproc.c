@@ -43,16 +43,11 @@ sys_getpid(void)
 }
 
 
-//-------------------------------
-
 int
 sys_getppid(void)
 {
   return getppid();
-  //return myproc()->parent->pid;
 }
-
-//-------------------------------
 
 int
 sys_sbrk(void)

@@ -88,7 +88,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-
+  p->priority = 10;
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -313,18 +313,31 @@ wait(void)
   }
 }
 
-//PAGEBREAK: 42
-// Per-CPU process scheduler.
-// Each CPU calls scheduler() after setting itself up.
-// Scheduler never returns.  It loops, doing:
-//  - choose a process to run
-//  - swtch to start running that process
-//  - eventually that process transfers control
-//      via swtch back to the scheduler.
+/**
+ * @def scheduler - Per-CPU process scheduler.
+ * Each CPU calls scheduler() after setting itself up.
+ * Scheduler never returns.  It loops, doing:
+ * What it does:
+ * * there is Time Quantum {Round Robin} --predefined--
+ * * choose a process to run from the ready queue which has the
+ *    highest priority {Priority based} `RUNNABLE`
+ * * swtch to start running that process
+ * * eventually that process transfers control
+ *    via swtch back to the scheduler.
+ * 
+ * @how it accomplishes
+ * as the process are push according to there creation it is already FCFS
+ * then we select based on the highest priority becomes Priority based
+ * finally as we are preempting the process according to the Quantum Time
+ *    it is becomming the Round Robin Sched.
+ */
+
 void
 scheduler(void)
 {
   struct proc *p;
+  struct proc *p1;
+
   struct cpu *c = mycpu();
   c->proc = 0;
   
@@ -332,12 +345,26 @@ scheduler(void)
     // Enable interrupts on this processor.
     sti();
 
+    struct proc *highPri = 0;
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
 
+      highPri = p;
+
+      for (p1 = ptable.proc; p1 < &ptable.proc[NPROC]; p1++) {
+        if (p1->state != RUNNABLE) 
+          continue;
+
+        if (p1->priority < highPri->priority)
+          highPri = p1;
+        if (p1->priority == highPri->priority && p1->cr_time < highPri->cr_time) 
+          highPri = p1;
+      }
+
+      p = highPri;
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -541,26 +568,49 @@ getppid()
   return myproc()->parent->pid;
 }
 
+// int
+// sys_sps(void)
+// {
+//   struct proc *p;
+//   sti();
+//   acquire(&ptable.lock);
+//   cprintf("PID : PPID : NAME : STATE : CREATE_TIME : SIZE : PRI\n");
+//   for(p = ptable.proc; p<&ptable.proc[NPROC]; p++) {
+//     if(p->state == SLEEPING)
+//       cprintf("%d : %d : %s : SLEEPING : %d : %d : %d\n",p->pid,p->parent->pid,p->name,p->cr_time,p->sz, p->priority);
+//     else if(p->state == RUNNING)
+//       cprintf("%d : %d : %s : RUNNING : %d : %d : %d\n",p->pid,p->parent->pid,p->name,p->cr_time,p->sz, p->priority);
+//     else if (p->state == RUNNABLE)
+//       cprintf("%d : %d : %s : RUNNABLE : %d : %d : %d\n",p->pid,p->parent->pid,p->name,p->cr_time,p->sz, p->priority);
+//   }
+//   release(&ptable.lock);
+//   return 0;
+// }
+
 int
 sys_sps(void)
 {
-        struct proc *p;
-        sti();
-        acquire(&ptable.lock);
-        cprintf("PID : PPID : NAME : STATE : CREATION TIME : SIZE\n");
-        for(p = ptable.proc; p<&ptable.proc[NPROC]; p++)
-        {
-         if(p->state == SLEEPING)
-         cprintf("%d : %d : %s : SLEEPING : %d : %d\n",p->pid,p->parent->pid,p->name,p->cr_time,p->sz);
-         else if(p->state == RUNNING)
-         cprintf("%d : %d : %s : RUNNING : %d : %d\n",p->pid,p->parent->pid,p->name,p->cr_time,p->sz);
-         else if (p->state == RUNNABLE)
-         cprintf("%d : %d : %s : RUNNABLE : %d : %d\n",p->pid,p->parent->pid,p->name,p->cr_time,p->sz);
-        }
-        release(&ptable.lock);
-        return 0;
-
+  struct proc *p;
+  sti();
+  acquire(&ptable.lock);
+  cprintf("R+ -> Running\tR -> Runnable\tS -> Sleeping\n\nPID\tNAME\tSTATE\tPRI\tArr_Time\n---\t----\t----\t---\t-------\n");
+  for(p = ptable.proc; p<&ptable.proc[NPROC]; p++) {
+    if (p->pid < 1) 
+      continue;
+    char *ch = {'\0'};
+    if (p->state == SLEEPING)
+      ch = "S";
+    else if (p->state == RUNNING)
+      ch = "R+";
+    else if (p->state == RUNNABLE)
+      ch = "R";
+    cprintf("%d\t%s\t%s\t%d\t%d\n", p->pid, p->name, ch, p->priority,p->cr_time);
+  }
+  release(&ptable.lock);
+  return 0;
 }
+
+
 int 
 waitpid(int cpid)
 {
