@@ -319,17 +319,19 @@ wait(void)
  * Scheduler never returns.  It loops, doing:
  * What it does:
  * * there is Time Quantum {Round Robin} --predefined--
- * * choose a process to run from the ready queue which has the
- *    highest priority {Priority based} `RUNNABLE`
+ * * choose a process to run from the ready queue which has:
+ *  * * the highest priority {Priority based} `RUNNABLE`
+ *  * * if same PRI then decide using the Arrival time {FCFS}
  * * swtch to start running that process
- * * eventually that process transfers control
- *    via swtch back to the scheduler.
+ * * eventually that process transfers control via swtch back to the scheduler.
  * 
  * @how it accomplishes
  * as the process are push according to there creation it is already FCFS
  * then we select based on the highest priority becomes Priority based
  * finally as we are preempting the process according to the Quantum Time
  *    it is becomming the Round Robin Sched.
+ * TODO: 
+ * * to implement Ageing in this scheduling
  */
 
 void
@@ -346,13 +348,19 @@ scheduler(void)
     sti();
 
     struct proc *highPri = 0;
-    // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+    // N = number of process which are 'RUNNABLE'
+    // then O(N^2) is the algorithm to decide which one to pick
+    
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
 
       highPri = p;
+      /**
+       * if one process which is runnable is selected @param highPri
+       * then it take {N} steps to get the best fit process
+       */
 
       for (p1 = ptable.proc; p1 < &ptable.proc[NPROC]; p1++) {
         if (p1->state != RUNNABLE) 
@@ -360,14 +368,16 @@ scheduler(void)
 
         if (p1->priority < highPri->priority)
           highPri = p1;
-        if (p1->priority == highPri->priority && p1->cr_time < highPri->cr_time) 
+
+        // if the Priority based decision is not helping then we are deciding using the
+        // FCFS based method of determination i.e. which one came first
+        if (p1->priority == highPri->priority && p1->cr_time < highPri->cr_time)
           highPri = p1;
       }
 
       p = highPri;
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
+      // Switch to chosen process.  It is the process's job to release ptable.
+      // lock and then reacquire it before jumping back to us.
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
@@ -375,8 +385,6 @@ scheduler(void)
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
       c->proc = 0;
     }
     release(&ptable.lock);
@@ -593,7 +601,8 @@ sys_sps(void)
   struct proc *p;
   sti();
   acquire(&ptable.lock);
-  cprintf("R+ -> Running\tR -> Runnable\tS -> Sleeping\n\nPID\tNAME\tSTATE\tPRI\tArr_Time\n---\t----\t----\t---\t-------\n");
+  cprintf("R+ -> Running\tR -> Runnable\tS -> Sleeping\n");
+  cprintf("\nPID\tNAME\tSTATE\tPRI\tArr_Time\n---\t----\t----\t---\t-------\n");
   for(p = ptable.proc; p<&ptable.proc[NPROC]; p++) {
     if (p->pid < 1) 
       continue;
