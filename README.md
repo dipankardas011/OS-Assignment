@@ -1,4 +1,7 @@
 # OS-Assignment
+
+[![C/C++ CI](https://github.com/dipankardas011/OS-Assignment/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/dipankardas011/OS-Assignment/actions/workflows/c-cpp.yml)
+
 OS-assignment CSE 3
 
 ## Assignment - 2
