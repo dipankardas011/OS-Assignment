@@ -651,20 +651,15 @@ waitpid(int cpid)
 			p->state = UNUSED;
 			release(&ptable.lock);
 			return pid;
-			
 			}
-		
 		}
 		if(havekids || curproc->killed){
-		
 			release(&ptable.lock);
 			return -1;
-		
 		}
 
 		sleep(curproc, &ptable.lock);
-		
-		}
+	}
 }
 
 
