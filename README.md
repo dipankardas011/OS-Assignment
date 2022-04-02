@@ -1,8 +1,13 @@
 # OS-Assignment
 OS-assignment CSE 3
 
-Assignment
-## Grp-members
+## Assignment - 2
+### Grp-members
+- `20051554`    *Dipankar Das*
+---
+
+## Assignment - 1
+### Grp-members
 
 - `02005006`    *Ahana Bose*
 - `02005035`    *Manav singh*
@@ -14,7 +19,7 @@ Assignment
 - `20051588`    *Shivansh Chaubey*
 - `20051446`    *Shagun Kumar*
 
-## Branch
+<!-- ## Branch
 
 ### Q1
 - [x] Dipankar Das
@@ -31,4 +36,4 @@ Assignment
 
 ### Q4
 - [x] Kaustav Sharma
-- [x] Manav singh
+- [x] Manav singh -->
